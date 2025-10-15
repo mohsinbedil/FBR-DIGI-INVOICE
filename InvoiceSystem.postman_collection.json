@@ -1,0 +1,1518 @@
+{
+	"info": {
+		"_postman_id": "f54944d8-0225-4f8f-a16d-7e1f2be7758e",
+		"name": "InvoiceSystem",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "44670234",
+		"_collection_link": "https://joe-8077991.postman.co/workspace/Joe's-Workspace~ce820b88-f7d9-4656-8930-d430c2462a58/collection/44670234-f54944d8-0225-4f8f-a16d-7e1f2be7758e?action=share&source=collection_link&creator=44670234"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Register",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{INVOICE_Token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"first_name\":\"sample\",\r\n    \"last_name\":\"sample\",\r\n    \"email\":\"sample@gmail.com\",\r\n    \"phone\": \"3001234567\",\r\n    \"password\":\"PassW0rd@\"\r\n\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/auth/register",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Forgot-Password",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Check if response is JSON and has a token\r",
+									"if (pm.response.code === 200) {\r",
+									"    try {\r",
+									"        var jsonData = pm.response.json();\r",
+									"\r",
+									"        // Replace 'token' with the actual key from your response\r",
+									"        if (jsonData.reset_token) {\r",
+									"            pm.collectionVariables.set(\"reset_Token\", jsonData.reset_token);\r",
+									"            console.log(\"Token saved to collectionVariables: reset_Token\");\r",
+									"        } else {\r",
+									"            console.warn(\"Token not found in response.\");\r",
+									"        }\r",
+									"    } catch (e) {\r",
+									"        console.error(\"Response is not a valid JSON.\");\r",
+									"    }\r",
+									"} else {\r",
+									"    console.error(\"Request failed with status code: \" + pm.response.code);\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\":\"sample@gmail.com\"\r\n\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/auth/forgot-password",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"auth",
+								"forgot-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Check if response is JSON and has a token\r",
+									"if (pm.response.code === 200) {\r",
+									"    try {\r",
+									"        var jsonData = pm.response.json();\r",
+									"\r",
+									"        // Replace 'token' with the actual key from your response\r",
+									"        if (jsonData.token) {\r",
+									"            pm.collectionVariables.set(\"INVOICE_Token\", jsonData.token);\r",
+									"            console.log(\"Token saved to collectionVariables: INVOICE_Token\");\r",
+									"        } else {\r",
+									"            console.warn(\"Token not found in response.\");\r",
+									"        }\r",
+									"    } catch (e) {\r",
+									"        console.error(\"Response is not a valid JSON.\");\r",
+									"    }\r",
+									"} else {\r",
+									"    console.error(\"Request failed with status code: \" + pm.response.code);\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    // \"name\":\"Temp\",\r\n    \"email\":\"sample@gmail.com\",\r\n    \"password\":\"Sample@123\"\r\n\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/auth/login",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "reset-password",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"token\":\"{{reset_Token}}\",\r\n    \"newPassword\":\"Sample@123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/auth/reset-password",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"auth",
+								"reset-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Me",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{INVOICE_Token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/users/me",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"users",
+								"me"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "logout",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{INVOICE_Token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/auth/logout",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"auth",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "UsersList",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{INVOICE_Token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/users/list",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"users",
+								"list"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Single user",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{INVOICE_Token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/users/f86fd602-bb0f-4751-93a2-231341dd72be",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"users",
+								"f86fd602-bb0f-4751-93a2-231341dd72be"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "User Update",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{INVOICE_Token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"first_name\":\"sample \",\r\n    \"last_name\":\"Testing\",\r\n    \"email\":\"sample@gmail.com\",\r\n    \"phone\": \"3001234567\",\r\n    \"status\": \"active\"\r\n\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/users/f86fd602-bb0f-4751-93a2-231341dd72be",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"users",
+								"f86fd602-bb0f-4751-93a2-231341dd72be"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update password",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{INVOICE_Token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"oldPassword\": \"Sample@123\",\r\n  \"newPassword\": \"Hassan@123\",\r\n  \"confirmPassword\": \"Hassan@123\"\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/users/update-password",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"users",
+								"update-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "User Active",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{INVOICE_Token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"first_name\":\"Temp\",\r\n    \"last_name\":\"Temp\",\r\n    \"email\":\"temps@gmail.com\",\r\n    \"phone\": \"3001234567\"\r\n\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/users/status/active/f86fd602-bb0f-4751-93a2-231341dd72be",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"users",
+								"status",
+								"active",
+								"f86fd602-bb0f-4751-93a2-231341dd72be"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "User Inactive",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{INVOICE_Token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/users/status/inactive/f86fd602-bb0f-4751-93a2-231341dd72be",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"users",
+								"status",
+								"inactive",
+								"f86fd602-bb0f-4751-93a2-231341dd72be"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{INVOICE_Token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/users/delete/f86fd602-bb0f-4751-93a2-231341dd72be",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"users",
+								"delete",
+								"f86fd602-bb0f-4751-93a2-231341dd72be"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Invoice",
+			"item": [
+				{
+					"name": "oldCreate Inovice data",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{INVOICE_Token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"invoiceType\": \"Sale Invoice\",\r\n  \"invoiceDate\": \"2025-04-21\",\r\n  \"sellerNTNCNIC\": \"0786909\",\r\n  \"sellerBusinessName\": \"Company 8\",\r\n  \"sellerProvince\": \"Sindh\",\r\n  \"sellerAddress\": \"Karachi\",\r\n  \"buyerNTNCNIC\": \"1000000000000\",\r\n  \"buyerBusinessName\": \"FERTILIZER MANUFAC IRS NEW\",\r\n  \"buyerProvince\": \"Sindh\",\r\n  \"buyerAddress\": \"Karachi\",\r\n  \"buyerRegistrationType\": \"Unregistered\",\r\n  \"invoiceRefNo\": \"\",\r\n  \"scenarioId\": \"SN001\",\r\n  \"items\": [\r\n    {\r\n      \"hsCode\": \"0101.2100\",\r\n      \"productDescription\": \"product Description\",\r\n      \"rate\": \"18%\",\r\n      \"uoM\": \"Numbers\",\r\n      \"quantity\": 1.0,\r\n      \"totalValues\": 1180.00,\r\n      \"valueSalesExcludingST\": 1000.00,\r\n      \"fixedNotifiedValueOrRetailPrice\": 0.00,\r\n      \"salesTaxApplicable\": 180.00,\r\n      \"salesTaxWithheldAtSource\": 0.00,\r\n      \"extraTax\": 0,\r\n      \"furtherTax\": 120.00,\r\n      \"sroScheduleNo\": \"SRO123\",\r\n      \"fedPayable\": 0.00,\r\n      \"discount\": 0.00,\r\n      \"saleType\": \"Goods at standard rate (default)\",\r\n      \"sroItemSerialNo\": \"\"\r\n    },\r\n    {\r\n      \"hsCode\": \"0101.2100\",\r\n      \"productDescription\": \"product Description\",\r\n      \"rate\": \"18%\",\r\n      \"uoM\": \"Numbers\",\r\n      \"quantity\": 1.0,\r\n      \"totalValues\": 1180.00,\r\n      \"valueSalesExcludingST\": 1000.00,\r\n      \"fixedNotifiedValueOrRetailPrice\": 0.00,\r\n      \"salesTaxApplicable\": 180.00,\r\n      \"salesTaxWithheldAtSource\": 0.00,\r\n      \"extraTax\": 0,\r\n      \"furtherTax\": 120.00,\r\n      \"sroScheduleNo\": \"SRO123\",\r\n      \"fedPayable\": 0.00,\r\n      \"discount\": 0.00,\r\n      \"saleType\": \"Goods at standard rate (default)\",\r\n      \"sroItemSerialNo\": \"\"\r\n    }    \r\n  ]\r\n}\r\n"
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/invoice/",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"invoice",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add in bulk",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{INVOICE_Token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "value",
+									"value": ".xlsx\n",
+									"type": "text",
+									"disabled": true
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/invoice/upload-excel",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"invoice",
+								"upload-excel"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "list & single fetch",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{INVOICE_Token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "/C:/Users/mmohs/Downloads/sample_invoices.xlsx"
+								},
+								{
+									"key": "value",
+									"value": ".xlsx\n",
+									"type": "text",
+									"disabled": true
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/invoice/c7e6fb77-d5e9-4ac4-93f6-7a3c346c484b",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"invoice",
+								"c7e6fb77-d5e9-4ac4-93f6-7a3c346c484b"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Invoice",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{INVOICE_Token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"invoiceType\": \"Sale Invoice\",\r\n  \"invoiceDate\": \"2025-10-14\",\r\n  \"sellerNTNCNIC\": \"1234567\",\r\n  \"sellerBusinessName\": \"My Company Pvt Ltd\",\r\n  \"sellerProvince\": \"Sindh\",\r\n  \"sellerAddress\": \"Karachi, Pakistan\",\r\n  \"buyerNTNCNIC\": \"1000000000000\",\r\n  \"buyerBusinessName\": \"Buyer Company\",\r\n  \"buyerProvince\": \"Sindh\",\r\n  \"buyerAddress\": \"Karachi, Pakistan\",\r\n  \"buyerRegistrationType\": \"Unregistered\",\r\n  \"invoiceRefNo\": \"\",\r\n  \"scenarioId\": \"SN001\",\r\n  \"items\": [\r\n    {\r\n      \"hsCode\": \"0101.2100\",\r\n      \"productDescription\": \"Product 1 description\",\r\n      \"rate\": \"15%\",\r\n      \"uoM\": \"Numbers\",\r\n      \"quantity\": 2,\r\n      \"totalValues\": 2360.00,\r\n      \"valueSalesExcludingST\": 2000.00,\r\n      \"fixedNotifiedValueOrRetailPrice\": 0.00,\r\n      \"salesTaxApplicable\": 360.00,\r\n      \"salesTaxWithheldAtSource\": 0.00,\r\n      \"extraTax\": 0,\r\n      \"furtherTax\": 120.00,\r\n      \"sroScheduleNo\": \"SRO123\",\r\n      \"fedPayable\": 0.00,\r\n      \"discount\": 0.00,\r\n      \"saleType\": \"Goods at standard rate (default)\",\r\n      \"sroItemSerialNo\": \"1\"\r\n    },\r\n    {\r\n      \"hsCode\": \"0101.2100\",\r\n      \"productDescription\": \"Product 2 description\",\r\n      \"rate\": \"18%\",\r\n      \"uoM\": \"Numbers\",\r\n      \"quantity\": 1,\r\n      \"totalValues\": 1180.00,\r\n      \"valueSalesExcludingST\": 1000.00,\r\n      \"fixedNotifiedValueOrRetailPrice\": 0.00,\r\n      \"salesTaxApplicable\": 180.00,\r\n      \"salesTaxWithheldAtSource\": 0.00,\r\n      \"extraTax\": 0,\r\n      \"furtherTax\": 120.00,\r\n      \"sroScheduleNo\": \"SRO124\",\r\n      \"fedPayable\": 0.00,\r\n      \"discount\": 0.00,\r\n      \"saleType\": \"Goods at standard rate (default)\",\r\n      \"sroItemSerialNo\": \"2\"\r\n    }\r\n  ]\r\n}\r\n"
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/invoice/save",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"invoice",
+								"save"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Post single to FBR",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{INVOICE_Token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"invoiceType\": \"Sale Invoice\",\r\n  \"invoiceDate\": \"2025-10-14\",\r\n  \"sellerNTNCNIC\": \"1234567\",\r\n  \"sellerBusinessName\": \"My Company Pvt Ltd\",\r\n  \"sellerProvince\": \"Sindh\",\r\n  \"sellerAddress\": \"Karachi, Pakistan\",\r\n  \"buyerNTNCNIC\": \"1000000000000\",\r\n  \"buyerBusinessName\": \"Buyer Company\",\r\n  \"buyerProvince\": \"Sindh\",\r\n  \"buyerAddress\": \"Karachi, Pakistan\",\r\n  \"buyerRegistrationType\": \"Unregistered\",\r\n  \"invoiceRefNo\": \"\",\r\n  \"scenarioId\": \"SN001\",\r\n  \"items\": [\r\n    {\r\n      \"hsCode\": \"0101.2100\",\r\n      \"productDescription\": \"Product 1 description\",\r\n      \"rate\": \"15%\",\r\n      \"uoM\": \"Numbers\",\r\n      \"quantity\": 2,\r\n      \"totalValues\": 2360.00,\r\n      \"valueSalesExcludingST\": 2000.00,\r\n      \"fixedNotifiedValueOrRetailPrice\": 0.00,\r\n      \"salesTaxApplicable\": 360.00,\r\n      \"salesTaxWithheldAtSource\": 0.00,\r\n      \"extraTax\": 0,\r\n      \"furtherTax\": 120.00,\r\n      \"sroScheduleNo\": \"SRO123\",\r\n      \"fedPayable\": 0.00,\r\n      \"discount\": 0.00,\r\n      \"saleType\": \"Goods at standard rate (default)\",\r\n      \"sroItemSerialNo\": \"1\"\r\n    },\r\n    {\r\n      \"hsCode\": \"0101.2100\",\r\n      \"productDescription\": \"Product 2 description\",\r\n      \"rate\": \"18%\",\r\n      \"uoM\": \"Numbers\",\r\n      \"quantity\": 1,\r\n      \"totalValues\": 1180.00,\r\n      \"valueSalesExcludingST\": 1000.00,\r\n      \"fixedNotifiedValueOrRetailPrice\": 0.00,\r\n      \"salesTaxApplicable\": 180.00,\r\n      \"salesTaxWithheldAtSource\": 0.00,\r\n      \"extraTax\": 0,\r\n      \"furtherTax\": 120.00,\r\n      \"sroScheduleNo\": \"SRO124\",\r\n      \"fedPayable\": 0.00,\r\n      \"discount\": 0.00,\r\n      \"saleType\": \"Goods at standard rate (default)\",\r\n      \"sroItemSerialNo\": \"2\"\r\n    }\r\n  ]\r\n}\r\n"
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/invoice/post/a0349c96-5092-4c6f-bd7b-3d659313a122",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"invoice",
+								"post",
+								"a0349c96-5092-4c6f-bd7b-3d659313a122"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Post all unposted to FBR",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{INVOICE_Token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/invoice/post-unposted",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"invoice",
+								"post-unposted"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Export CSV",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{INVOICE_Token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"invoiceType\": \"Sale Invoice\",\r\n  \"invoiceDate\": \"2025-04-21\",\r\n  \"sellerNTNCNIC\": \"0786909\",\r\n  \"sellerBusinessName\": \"Company 8\",\r\n  \"sellerProvince\": \"Sindh\",\r\n  \"sellerAddress\": \"Karachi\",\r\n  \"buyerNTNCNIC\": \"1000000000000\",\r\n  \"buyerBusinessName\": \"FERTILIZER MANUFAC IRS NEW\",\r\n  \"buyerProvince\": \"Sindh\",\r\n  \"buyerAddress\": \"Karachi\",\r\n  \"buyerRegistrationType\": \"Unregistered\",\r\n  \"invoiceRefNo\": \"\",\r\n  \"scenarioId\": \"SN001\",\r\n  \"items\": [\r\n    {\r\n      \"hsCode\": \"0101.2100\",\r\n      \"productDescription\": \"product Description\",\r\n      \"rate\": \"18%\",\r\n      \"uoM\": \"Numbers\",\r\n      \"quantity\": 1.0,\r\n      \"totalValues\": 1180.00,\r\n      \"valueSalesExcludingST\": 1000.00,\r\n      \"fixedNotifiedValueOrRetailPrice\": 0.00,\r\n      \"salesTaxApplicable\": 180.00,\r\n      \"salesTaxWithheldAtSource\": 0.00,\r\n      \"extraTax\": 0,\r\n      \"furtherTax\": 120.00,\r\n      \"sroScheduleNo\": \"SRO123\",\r\n      \"fedPayable\": 0.00,\r\n      \"discount\": 0.00,\r\n      \"saleType\": \"Goods at standard rate (default)\",\r\n      \"sroItemSerialNo\": \"\"\r\n    },\r\n    {\r\n      \"hsCode\": \"0101.2100\",\r\n      \"productDescription\": \"product Description\",\r\n      \"rate\": \"18%\",\r\n      \"uoM\": \"Numbers\",\r\n      \"quantity\": 1.0,\r\n      \"totalValues\": 1180.00,\r\n      \"valueSalesExcludingST\": 1000.00,\r\n      \"fixedNotifiedValueOrRetailPrice\": 0.00,\r\n      \"salesTaxApplicable\": 180.00,\r\n      \"salesTaxWithheldAtSource\": 0.00,\r\n      \"extraTax\": 0,\r\n      \"furtherTax\": 120.00,\r\n      \"sroScheduleNo\": \"SRO123\",\r\n      \"fedPayable\": 0.00,\r\n      \"discount\": 0.00,\r\n      \"saleType\": \"Goods at standard rate (default)\",\r\n      \"sroItemSerialNo\": \"\"\r\n    }    \r\n  ]\r\n}\r\n"
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/invoice/export?start_date=2025-10-12&end_date=2025-10-15",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"invoice",
+								"export"
+							],
+							"query": [
+								{
+									"key": "start_date",
+									"value": "2025-10-12"
+								},
+								{
+									"key": "end_date",
+									"value": "2025-10-15"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "CompanyInfo",
+			"item": [
+				{
+					"name": "Create Company Info",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{INVOICE_Token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"companyName\": \"TechNova Pvt Ltd\",\r\n  \"NTN\": \"1234567-8\",\r\n  \"province\": \"Sindh\",\r\n  \"address\": \"Plot 46, I.I. Chundrigar Road, Karachi\",\r\n  \"business_Email\": \"info@technova.com\",\r\n  \"STRN\": \"STRN-998877\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/company",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"company"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Company Info",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{INVOICE_Token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"companyName\": \"TechNova Pvt Ltd\",\r\n  \"NTN\": \"1234567-8\",\r\n  \"province\": \"Sindh\",\r\n  \"address\": \"Plot 46, I.I. Chundrigar Road, Karachi\",\r\n  \"business_Email\": \"info@technova.com\",\r\n  \"STRN\": \"STRN-998877\"\r\n}\r\n"
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/company",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"company"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Info",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{INVOICE_Token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"companyName\": \"TechNova Pvt Ltd\",\r\n  \"NTN\": \"1234567-8\",\r\n  \"province\": \"Sindh\",\r\n  \"address\": \"Plot 46, I.I. Chundrigar Road, Karachi\",\r\n  \"business_Email\": \"info@technova.com\",\r\n  \"STRN\": \"STRN-998877\"\r\n}\r\n"
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/company",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"company"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Info",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{INVOICE_Token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"companyName\": \"TechNova Pvt Ltd\",\r\n  \"NTN\": \"1234567-8\",\r\n  \"province\": \"Sindh\",\r\n  \"address\": \"Plot 46, I.I. Chundrigar Road, Karachi\",\r\n  \"business_Email\": \"info@technova.com\",\r\n  \"STRN\": \"STRN-998877\"\r\n}\r\n"
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/company",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"company"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get by NTN",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{INVOICE_Token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"NTN\": \"1234567-8\"\r\n\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/company/ntn",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"company",
+								"ntn"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "BuyerInfo",
+			"item": [
+				{
+					"name": "Create Buyer",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{INVOICE_Token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"NTN\": \"12345-6\",\r\n  \"buyerBusinessName\": \"ABC Traders\",\r\n  \"buyerProvince\": \"Punjab\",\r\n  \"buyerAddress\": \"Shop #12, Liberty Market, Lahore\",\r\n  \"buyerRegistrationType\": \"Registered\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/buyer",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"buyer"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get Buyer",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{INVOICE_Token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"search\": \"12345-6\"\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/buyer",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"buyer"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Buyer info",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{INVOICE_Token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n        \"NTN\": \"12345-6\",\r\n        \"buyerBusinessName\": \"ABC Traders  \",\r\n        \"buyerProvince\": \"Punjab\",\r\n        \"buyerAddress\": \"Shop #12, Liberty Market, Lahore\",\r\n        \"buyerRegistrationType\": \"Registered\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/buyer/c47cda75-37da-419b-9aee-ee4fa111b748",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"buyer",
+								"c47cda75-37da-419b-9aee-ee4fa111b748"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Buyer",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{INVOICE_Token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/buyer/c47cda75-37da-419b-9aee-ee4fa111b748",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"buyer",
+								"c47cda75-37da-419b-9aee-ee4fa111b748"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Items",
+			"item": [
+				{
+					"name": "Create Items",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{INVOICE_Token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    // \"hsCode\": \"0101.2100\",\r\n    \"productDescription\": \"product Description\",\r\n    \"rate\": \"18%\",\r\n    \"uoM\": \"Numbers\",\r\n    \"quantity\": 1.0,\r\n    \"totalValues\": 1180.00,\r\n    \"valueSalesExcludingST\": 1000.00,\r\n    \"fixedNotifiedValueOrRetailPrice\": 0.00,\r\n    \"salesTaxApplicable\": 180.00,\r\n    \"salesTaxWithheldAtSource\": 0.00,\r\n    \"extraTax\": 0,\r\n    \"furtherTax\": 120.00,\r\n    \"sroScheduleNo\": \"SRO123\",\r\n    \"fedPayable\": 0.00,\r\n    \"discount\": 0.00,\r\n    \"saleType\": \"Goods at standard rate (default)\",\r\n    \"sroItemSerialNo\": \"\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/items",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"items"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Items + single",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{INVOICE_Token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/items/88e5f706-8bea-4db5-a6a8-e1d9be0c8436",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"items",
+								"88e5f706-8bea-4db5-a6a8-e1d9be0c8436"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"disabled": true
+								},
+								{
+									"key": "limit",
+									"value": "2",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Product",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{INVOICE_Token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n \r\n    \"productDescription\": \"product Description updated\",\r\n    \"rate\": \"18%\",\r\n    \"uoM\": \"Numbers\",\r\n    \"quantity\": 1.0,\r\n    \"totalValues\": 1180.00,\r\n    \"valueSalesExcludingST\": 1000.00,\r\n    \"fixedNotifiedValueOrRetailPrice\": 0.00,\r\n    \"salesTaxApplicable\": 180.00,\r\n    \"salesTaxWithheldAtSource\": 0.00,\r\n    \"extraTax\": 0,\r\n    \"furtherTax\": 120.00,\r\n    \"sroScheduleNo\": \"SRO123\",\r\n    \"fedPayable\": 0.00,\r\n    \"discount\": 0.00,\r\n    \"saleType\": \"Goods at standard rate (default)\",\r\n    \"sroItemSerialNo\": \"\"\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/items/88e5f706-8bea-4db5-a6a8-e1d9be0c8436",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"items",
+								"88e5f706-8bea-4db5-a6a8-e1d9be0c8436"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"disabled": true
+								},
+								{
+									"key": "limit",
+									"value": "2",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete product",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{INVOICE_Token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n \r\n    \"productDescription\": \"product Description updated\",\r\n    \"rate\": \"18%\",\r\n    \"uoM\": \"Numbers\",\r\n    \"quantity\": 1.0,\r\n    \"totalValues\": 1180.00,\r\n    \"valueSalesExcludingST\": 1000.00,\r\n    \"fixedNotifiedValueOrRetailPrice\": 0.00,\r\n    \"salesTaxApplicable\": 180.00,\r\n    \"salesTaxWithheldAtSource\": 0.00,\r\n    \"extraTax\": 0,\r\n    \"furtherTax\": 120.00,\r\n    \"sroScheduleNo\": \"SRO123\",\r\n    \"fedPayable\": 0.00,\r\n    \"discount\": 0.00,\r\n    \"saleType\": \"Goods at standard rate (default)\",\r\n    \"sroItemSerialNo\": \"\"\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/items/88e5f706-8bea-4db5-a6a8-e1d9be0c8436",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"items",
+								"88e5f706-8bea-4db5-a6a8-e1d9be0c8436"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"disabled": true
+								},
+								{
+									"key": "limit",
+									"value": "2",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "INVOICE_Token",
+			"value": ""
+		},
+		{
+			"key": "reset_Token",
+			"value": ""
+		}
+	]
+}

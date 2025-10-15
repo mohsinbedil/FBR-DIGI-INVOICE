@@ -1,0 +1,356 @@
+// exports.createInvoice = async (req, res) => {
+//   const data = req.body;
+//   const now = new Date().toISOString().replace("T", " ").substring(0, 19);
+
+//   try {
+//     // ---------------------------
+//     // HEADER VALIDATION
+//     // ---------------------------
+//     const errors = [];
+
+//     if (!data.invoiceType || !["Sale Invoice", "Debit Note"].includes(data.invoiceType))
+//       errors.push({ field: "invoiceType", code: "0001", message: "Invalid or missing invoiceType" });
+
+//     if (!data.invoiceDate || !validator.isDate(data.invoiceDate))
+//       errors.push({ field: "invoiceDate", code: "0002", message: "Invalid or missing invoiceDate" });
+
+//     if (!data.sellerNTNCNIC)
+//       errors.push({ field: "sellerNTNCNIC", code: "0003", message: "Missing sellerNTNCNIC" });
+
+//     if (!data.sellerBusinessName)
+//       errors.push({ field: "sellerBusinessName", code: "0004", message: "Missing sellerBusinessName" });
+
+//     if (!data.sellerProvince)
+//       errors.push({ field: "sellerProvince", code: "0005", message: "Missing sellerProvince" });
+
+//     if (!data.sellerAddress)
+//       errors.push({ field: "sellerAddress", code: "0006", message: "Missing sellerAddress" });
+
+//     if (!data.buyerBusinessName)
+//       errors.push({ field: "buyerBusinessName", code: "0007", message: "Missing buyerBusinessName" });
+
+//     if (!data.buyerProvince)
+//       errors.push({ field: "buyerProvince", code: "0008", message: "Missing buyerProvince" });
+
+//     if (!data.buyerAddress)
+//       errors.push({ field: "buyerAddress", code: "0009", message: "Missing buyerAddress" });
+
+//     if (!data.buyerRegistrationType || !["Registered", "Unregistered"].includes(data.buyerRegistrationType))
+//       errors.push({ field: "buyerRegistrationType", code: "0010", message: "Invalid or missing buyerRegistrationType" });
+
+//     if (data.buyerRegistrationType === "Registered" && !data.buyerNTNCNIC)
+//       errors.push({ field: "buyerNTNCNIC", code: "0011", message: "buyerNTNCNIC required for registered buyer" });
+
+//     if (data.invoiceType === "Debit Note" && !data.invoiceRefNo)
+//       errors.push({ field: "invoiceRefNo", code: "0012", message: "invoiceRefNo required for Debit Note" });
+
+//     if (!data.scenarioId)
+//       errors.push({ field: "scenarioId", code: "0013", message: "scenarioId required for sandbox testing" });
+
+//     // ---------------------------
+//     // ITEM VALIDATION
+//     // ---------------------------
+//     if (!Array.isArray(data.items) || data.items.length === 0) {
+//       errors.push({ field: "items", code: "0014", message: "At least one invoice item required" });
+//     } else {
+//       data.items.forEach((item, idx) => {
+//         const sNo = idx + 1;
+//         if (!item.hsCode) errors.push({ field: `items[${sNo}].hsCode`, code: "0041", message: "Provide HS Code." });
+//         if (!item.productDescription) errors.push({ field: `items[${sNo}].productDescription`, code: "0042", message: "Provide product description." });
+//         if (!item.rate) errors.push({ field: `items[${sNo}].rate`, code: "0046", message: "Provide rate." });
+//         if (!item.uoM) errors.push({ field: `items[${sNo}].uoM`, code: "0043", message: "Provide unit of measure." });
+//         if (item.quantity == null || isNaN(item.quantity)) errors.push({ field: `items[${sNo}].quantity`, code: "0044", message: "Provide valid quantity." });
+//         if (item.totalValues == null || isNaN(item.totalValues)) errors.push({ field: `items[${sNo}].totalValues`, code: "0045", message: "Provide totalValues." });
+//         if (item.valueSalesExcludingST == null || isNaN(item.valueSalesExcludingST)) errors.push({ field: `items[${sNo}].valueSalesExcludingST`, code: "0047", message: "Provide valueSalesExcludingST." });
+//         if (item.salesTaxApplicable == null || isNaN(item.salesTaxApplicable)) errors.push({ field: `items[${sNo}].salesTaxApplicable`, code: "0048", message: "Provide salesTaxApplicable." });
+//         if (!item.saleType) errors.push({ field: `items[${sNo}].saleType`, code: "0049", message: "Provide saleType." });
+//       });
+//     }
+
+//     // ---------------------------
+//     // RETURN INVALID RESPONSE
+//     // ---------------------------
+//     if (errors.length > 0) {
+//       return res.status(400).json({
+//         dated: now,
+//         validationResponse: {
+//           statusCode: "00",
+//           status: "Invalid",
+//           errorCode: null,
+//           error: "",
+//           invoiceStatuses: errors.map((e, i) => ({
+//             itemSNo: (i + 1).toString(),
+//             statusCode: "01",
+//             status: "Invalid",
+//             errorCode: e.code,
+//             error: e.message,
+//           })),
+//         },
+//       });
+//     }
+
+//     // ---------------------------
+//     // INSERT INTO DB
+//     // ---------------------------
+//     const invoiceUUID = uuidv4();
+//     const [result] = await db.promise().query(
+//       `INSERT INTO invoices (
+//         uuid, invoice_type, invoice_date, seller_ntn_cnic, seller_business_name, seller_province, seller_address,
+//         buyer_ntn_cnic, buyer_business_name, buyer_province, buyer_address, buyer_registration_type, 
+//         invoice_ref_no, scenario_id, total_value, total_tax
+//       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+//       [
+//         invoiceUUID,
+//         data.invoiceType,
+//         data.invoiceDate,
+//         data.sellerNTNCNIC,
+//         data.sellerBusinessName,
+//         data.sellerProvince,
+//         data.sellerAddress,
+//         data.buyerNTNCNIC || null,
+//         data.buyerBusinessName,
+//         data.buyerProvince,
+//         data.buyerAddress,
+//         data.buyerRegistrationType,
+//         data.invoiceRefNo || null,
+//         data.scenarioId,
+//         0,
+//         0,
+//       ]
+//     );
+
+//     const invoiceId = result.insertId;
+
+//     // ---------------------------
+//     // Insert Items
+//     // ---------------------------
+//     const createdItems = [];
+//     for (const item of data.items) {
+//       const itemUUID = uuidv4();
+//       await db.promise().query(
+//         `INSERT INTO invoice_items (
+//           invoice_id, uuid, hs_code, product_description, rate_desc, rate_percent, uom, quantity,
+//           total_values, value_sales_excl_st, fixed_notified_value_or_retail_price, sales_tax_applicable,
+//           sales_tax_withheld_at_source, extra_tax, further_tax, sro_schedule_no, fed_payable, discount, sale_type, sro_item_serial_no
+//         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+//         [
+//           invoiceId,
+//           itemUUID,
+//           item.hsCode,
+//           item.productDescription,
+//           item.rate,
+//           parseFloat(item.rate.replace("%", "")),
+//           item.uoM,
+//           item.quantity,
+//           item.totalValues,
+//           item.valueSalesExcludingST,
+//           item.fixedNotifiedValueOrRetailPrice || 0,
+//           item.salesTaxApplicable,
+//           item.salesTaxWithheldAtSource || 0,
+//           item.extraTax || 0,
+//           item.furtherTax || 0,
+//           item.sroScheduleNo || null,
+//           item.fedPayable || 0,
+//           item.discount || 0,
+//           item.saleType,
+//           item.sroItemSerialNo || null,
+//         ]
+//       );
+
+//       createdItems.push({
+//         uuid: itemUUID,
+//         hsCode: item.hsCode,
+//         productDescription: item.productDescription,
+//         rate: item.rate,
+//         uoM: item.uoM,
+//         quantity: item.quantity,
+//         totalValues: item.totalValues,
+//         valueSalesExcludingST: item.valueSalesExcludingST,
+//         fixedNotifiedValueOrRetailPrice: item.fixedNotifiedValueOrRetailPrice || 0,
+//         salesTaxApplicable: item.salesTaxApplicable,
+//         salesTaxWithheldAtSource: item.salesTaxWithheldAtSource || 0,
+//         extraTax: item.extraTax || 0,
+//         furtherTax: item.furtherTax || 0,
+//         sroScheduleNo: item.sroScheduleNo || null,
+//         fedPayable: item.fedPayable || 0,
+//         discount: item.discount || 0,
+//         saleType: item.saleType,
+//         sroItemSerialNo: item.sroItemSerialNo || null,
+//       });
+//     }
+
+//     // ---------------------------
+//     // SUCCESS RESPONSE (with created data, no IDs)
+//     // ---------------------------
+//     return res.status(200).json({
+//       dated: now,
+//       validationResponse: {
+//         statusCode: "00",
+//         status: "Valid",
+//         errorCode: null,
+//         error: "",
+//         invoiceStatuses: [
+//           {
+//             itemSNo: "1",
+//             statusCode: "00",
+//             status: "Valid",
+//             errorCode: null,
+//             error: "",
+//           },
+//         ],
+//       },
+//       createdInvoice: {
+//         uuid: invoiceUUID,
+//         invoiceType: data.invoiceType,
+//         invoiceDate: data.invoiceDate,
+//         sellerNTNCNIC: data.sellerNTNCNIC,
+//         sellerBusinessName: data.sellerBusinessName,
+//         sellerProvince: data.sellerProvince,
+//         sellerAddress: data.sellerAddress,
+//         buyerNTNCNIC: data.buyerNTNCNIC || null,
+//         buyerBusinessName: data.buyerBusinessName,
+//         buyerProvince: data.buyerProvince,
+//         buyerAddress: data.buyerAddress,
+//         buyerRegistrationType: data.buyerRegistrationType,
+//         invoiceRefNo: data.invoiceRefNo || null,
+//         scenarioId: data.scenarioId,
+//         items: createdItems,
+//       },
+//     });
+//   } catch (err) {
+//     console.error("❌ Invoice Error:", err);
+//     return res.status(500).json({
+//       dated: new Date().toISOString(),
+//       validationResponse: {
+//         statusCode: "99",
+//         status: "Error",
+//         errorCode: "E500",
+//         error: err.message,
+//         invoiceStatuses: [],
+//       },
+//     });
+//   }
+// };
+
+
+
+// ✅ GET /api/invoices/with-items?page=1&limit=10
+
+// exports.getInvoicesWithItems = async (req, res) => {
+//   try {
+//     // 1️⃣ Extract pagination params
+//     const page = parseInt(req.query.page) || 1;
+//     const limit = parseInt(req.query.limit) || 10;
+//     const offset = (page - 1) * limit;
+
+//     // 2️⃣ Count total invoices
+//     const [countResult] = await db.promise().query(`SELECT COUNT(*) AS total FROM invoices`);
+//     const total = countResult[0].total;
+//     const totalPages = Math.ceil(total / limit);
+
+//     // 3️⃣ Fetch paginated invoices
+//     const [invoices] = await db.promise().query(
+//       `
+//       SELECT 
+//         id,
+//         uuid,
+//         invoice_type AS invoiceType,
+//         invoice_date AS invoiceDate,
+//         seller_ntn_cnic AS sellerNTNCNIC,
+//         seller_business_name AS sellerBusinessName,
+//         seller_province AS sellerProvince,
+//         seller_address AS sellerAddress,
+//         buyer_ntn_cnic AS buyerNTNCNIC,
+//         buyer_business_name AS buyerBusinessName,
+//         buyer_province AS buyerProvince,
+//         buyer_address AS buyerAddress,
+//         buyer_registration_type AS buyerRegistrationType,
+//         invoice_ref_no AS invoiceRefNo,
+//         scenario_id AS scenarioId,
+//         total_value AS totalValue,
+//         total_tax AS totalTax,
+//         created_at AS createdAt
+//       FROM invoices
+//       ORDER BY id DESC
+//       LIMIT ? OFFSET ?
+//       `,
+//       [limit, offset]
+//     );
+
+//     if (invoices.length === 0) {
+//       return res.json({
+//         success: true,
+//         data: { invoices: [] },
+//         pagination: {
+//           total: 0,
+//           page,
+//           totalPages: 0,
+//           limit
+//         },
+//         message: 'No invoices found.'
+//       });
+//     }
+
+//     // 4️⃣ Collect invoice IDs
+//     const invoiceIds = invoices.map(inv => inv.id);
+//     const placeholders = invoiceIds.map(() => '?').join(',');
+
+//     // 5️⃣ Fetch related items for current page
+//     const [items] = await db.promise().query(
+//       `
+//       SELECT 
+//         id,
+//         invoice_id,
+//         hs_code AS hsCode,
+//         product_description AS productDescription,
+//         rate_desc AS rate,
+//         rate_percent AS ratePercent,
+//         uom AS uoM,
+//         quantity,
+//         total_values AS totalValues,
+//         value_sales_excl_st AS valueSalesExcludingST,
+//         sales_tax_applicable AS salesTaxApplicable,
+//         further_tax AS furtherTax
+//       FROM invoice_items
+//       WHERE invoice_id IN (${placeholders})
+//       ORDER BY invoice_id, id
+//       `,
+//       invoiceIds
+//     );
+
+//     // 6️⃣ Group items by invoice_id
+//     const itemsByInvoice = {};
+//     items.forEach(item => {
+//       if (!itemsByInvoice[item.invoice_id]) itemsByInvoice[item.invoice_id] = [];
+//       itemsByInvoice[item.invoice_id].push(item);
+//     });
+
+//     // 7️⃣ Attach items to each invoice
+//     invoices.forEach(inv => {
+//       inv.items = itemsByInvoice[inv.id] || [];
+//       inv.itemsCount = inv.items.length;
+//     });
+
+//     // 8️⃣ Return structured response
+//     res.json({
+//       success: true,
+//       data: { invoices },
+//       pagination: {
+//         total,
+//         page,
+//         totalPages,
+//         limit
+//       }
+//     });
+
+//   } catch (error) {
+//     console.error('❌ Error fetching invoices with items:', error);
+//     res.status(500).json({
+//       success: false,
+//       message: 'Internal Server Error',
+//       error: error.message
+//     });
+//   }
+// };
+
+
