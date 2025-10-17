@@ -18,12 +18,17 @@ router.post(
 // POST /invoices
 // router.post("/", invoiceController.createInvoice);
 router.get("/export", invoiceController.exportInvoicesCSV);
-router.get("/", invoiceController.listInvoices);
-router.get("/:uuid", invoiceController.getInvoiceByUUID);
-router.post("/save", invoiceController.saveInvoice);
-router.post("/post-unposted", invoiceController.postUnpostedInvoices);
+router.get("/", invoiceController.listInvoices);// local db list
+router.get("/:uuid", invoiceController.getInvoiceByUUID);// local db
+router.post("/save", invoiceController.saveInvoice);// save in loaca database
+router.post("/post-unposted", invoiceController.postUnpostedInvoices); // send unposted data
+router.post("/post-range", invoiceController.postInvoicesByScenarioRange); //select range to pst data to fbr
+router.post("/post/:uuid", invoiceController.postInvoiceToFBR);// poste single invoice to fbr
+router.get("/fbr/:irn", invoiceController.getInvoiceFromFBR);// fbr invoice get from fbr
+router.delete("/delete/:uuid", invoiceController.deleteInvoice);// local db
 
-router.post("/post/:uuid", invoiceController.postInvoiceToFBR);
+
+
 
 
 

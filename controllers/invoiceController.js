@@ -6,6 +6,8 @@ const xlsx = require('xlsx');
 const path = require('path');
 const fastcsv = require('fast-csv');
 const fs = require('fs')
+const axios = require("axios");
+
 
 
 // ✅ GET /api/invoices/:uuid
@@ -117,6 +119,69 @@ exports.getInvoiceByUUID = async (req, res) => {
 };
 
 
+exports.listInvoices = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
+    const statusFilter = req.query.status; // optional filter: 'posted' or 'unposted'
+
+    // Build WHERE clause
+    let where = '';
+    const params = [];
+    if (statusFilter && ['posted', 'unposted'].includes(statusFilter)) {
+      where = 'WHERE status = ?';
+      params.push(statusFilter);
+    }
+
+    // Fetch total counts and revenue
+    const [totals] = await db.promise().query(
+      `SELECT 
+          COUNT(*) AS totalInvoices,
+          SUM(total_value) AS totalRevenue,
+          SUM(CASE WHEN status='posted' THEN 1 ELSE 0 END) AS totalPostedCount,
+          SUM(CASE WHEN status='unposted' THEN 1 ELSE 0 END) AS totalUnpostedCount,
+          SUM(CASE WHEN status='posted' THEN total_value ELSE 0 END) AS totalPostedValue,
+          SUM(CASE WHEN status='unposted' THEN total_value ELSE 0 END) AS totalUnpostedValue
+       FROM invoices`
+    );
+
+    // ✅ Fetch paginated invoices including `scenarioId`
+    const [invoices] = await db.promise().query(
+      `SELECT 
+          id, 
+          uuid, 
+          scenario_id,  -- ✅ Added this field
+          invoice_type, 
+          invoice_date, 
+          buyer_business_name, 
+          total_value, 
+          status
+       FROM invoices
+       ${where}
+       ORDER BY invoice_date DESC
+       LIMIT ? OFFSET ?`,
+      [...params, limit, offset]
+    );
+
+    res.json({
+      page,
+      limit,
+      totalInvoices: totals[0].totalInvoices,
+      totalRevenue: totals[0].totalRevenue,
+      totalPostedCount: totals[0].totalPostedCount,
+      totalUnpostedCount: totals[0].totalUnpostedCount,
+      totalPostedValue: totals[0].totalPostedValue,
+      totalUnpostedValue: totals[0].totalUnpostedValue,
+      invoices
+    });
+  } catch (err) {
+    console.error("❌ List Invoices Error:", err);
+    res.status(500).json({ status: 'error', error: err.message });
+  }
+};
+
+
 
 // POST /api/invoices/save
 exports.saveInvoice = async (req, res) => {
@@ -182,8 +247,53 @@ exports.saveInvoice = async (req, res) => {
   }
 };
 
+// DELETE /api/invoices/:uuid
+exports.deleteInvoice = async (req, res) => {
+  const { uuid } = req.params;
 
-const axios = require("axios");
+  if (!uuid) {
+    return res.status(400).json({
+      status: "Invalid",
+      message: "Missing invoice UUID",
+    });
+  }
+
+  try {
+    // 1️⃣ Check if invoice exists
+    const [invoiceRows] = await db.promise().query(
+      "SELECT id FROM invoices WHERE uuid = ?",
+      [uuid]
+    );
+
+    if (invoiceRows.length === 0) {
+      return res.status(404).json({
+        status: "Not Found",
+        message: "Invoice not found",
+      });
+    }
+
+    const invoiceId = invoiceRows[0].id;
+
+    // 2️⃣ Delete related items first
+    await db.promise().query("DELETE FROM invoice_items WHERE invoice_id = ?", [invoiceId]);
+
+    // 3️⃣ Delete main invoice
+    await db.promise().query("DELETE FROM invoices WHERE id = ?", [invoiceId]);
+
+    return res.status(200).json({
+      status: "success",
+      message: "Invoice deleted successfully",
+      deletedUUID: uuid,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({
+      status: "error",
+      message: err.message,
+    });
+  }
+};
+
 
 exports.postUnpostedInvoices = async (req, res) => {
   const FBR_API_URL = "https://sandbox.fbr.gov.pk/api/invoice"; // replace with actual
@@ -302,10 +412,16 @@ exports.postInvoiceToFBR = async (req, res) => {
     // 3️⃣ Send to FBR (sandbox)
     const axios = require("axios");
     const token = process.env.FBR_ACCESS_TOKEN;
+    const PostAPI = process.env.FBR_POST_API;
     const response = await axios.post(
-      "https://gw.fbr.gov.pk/imsp/v1/api/Sandbox/PostData",
+      PostAPI,
       fbrPayload,
-      { headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } }
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
+      }
     );
 
     // 4️⃣ Update invoice as posted
@@ -323,59 +439,154 @@ exports.postInvoiceToFBR = async (req, res) => {
 
 
 
-exports.listInvoices = async (req, res) => {
+exports.postInvoicesByScenarioRange = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const offset = (page - 1) * limit;
-    const statusFilter = req.query.status; // optional filter: 'posted' or 'unposted'
+    const { start, end } = req.body;
 
-    // Build WHERE clause
-    let where = '';
-    const params = [];
-    if (statusFilter && ['posted', 'unposted'].includes(statusFilter)) {
-      where = 'WHERE status = ?';
-      params.push(statusFilter);
+    if (!start || !end) {
+      return res.status(400).json({ error: "Please provide start and end scenario_id range" });
     }
 
-    // Fetch total counts and revenue
-    const [totals] = await db.promise().query(
-      `SELECT 
-          COUNT(*) AS totalInvoices,
-          SUM(total_value) AS totalRevenue,
-          SUM(CASE WHEN status='posted' THEN 1 ELSE 0 END) AS totalPostedCount,
-          SUM(CASE WHEN status='unposted' THEN 1 ELSE 0 END) AS totalUnpostedCount,
-          SUM(CASE WHEN status='posted' THEN total_value ELSE 0 END) AS totalPostedValue,
-          SUM(CASE WHEN status='unposted' THEN total_value ELSE 0 END) AS totalUnpostedValue
-       FROM invoices`
-    );
+    const token = process.env.FBR_ACCESS_TOKEN;
+    const PostAPI = process.env.FBR_POST_API;
 
-    // Fetch paginated invoices
+    // 1️⃣ Fetch invoices in the given range
     const [invoices] = await db.promise().query(
-      `SELECT id, uuid, invoice_type, invoice_date, buyer_business_name, total_value, status
-       FROM invoices
-       ${where}
-       ORDER BY invoice_date DESC
-       LIMIT ? OFFSET ?`,
-      [...params, limit, offset]
+      `SELECT * FROM invoices WHERE scenario_id BETWEEN ? AND ? AND status != 'posted'`,
+      [start, end]
     );
 
+    if (invoices.length === 0) {
+      return res.status(404).json({ message: "No unposted invoices found in this range." });
+    }
+
+    const results = [];
+
+    // 2️⃣ Loop through each invoice and post to FBR
+    for (const invoice of invoices) {
+      try {
+        const [items] = await db.promise().query(
+          `SELECT * FROM invoice_items WHERE invoice_id = ?`,
+          [invoice.id]
+        );
+
+        const fbrPayload = {
+          invoiceType: invoice.invoice_type,
+          invoiceDate: invoice.invoice_date,
+          invoiceRefNo: invoice.invoice_ref_no,
+          scenarioId: invoice.scenario_id,
+          sellerNTNCNIC: invoice.seller_ntn_cnic,
+          sellerBusinessName: invoice.seller_business_name,
+          sellerProvince: invoice.seller_province,
+          sellerAddress: invoice.seller_address,
+          buyerNTNCNIC: invoice.buyer_ntn_cnic,
+          buyerBusinessName: invoice.buyer_business_name,
+          buyerProvince: invoice.buyer_province,
+          buyerAddress: invoice.buyer_address,
+          buyerRegistrationType: invoice.buyer_registration_type,
+          items: items.map(i => ({
+            hsCode: i.hs_code,
+            productDescription: i.product_description,
+            rate: i.rate_desc,
+            uoM: i.uom,
+            quantity: i.quantity,
+            totalValues: i.total_values,
+            valueSalesExcludingST: i.value_sales_excl_st,
+            fixedNotifiedValueOrRetailPrice: i.fixed_notified_value_or_retail_price,
+            salesTaxApplicable: i.sales_tax_applicable,
+            salesTaxWithheldAtSource: i.sales_tax_withheld_at_source,
+            extraTax: i.extra_tax,
+            furtherTax: i.further_tax,
+            fedPayable: i.fed_payable,
+            discount: i.discount,
+            saleType: i.sale_type,
+            sroScheduleNo: i.sro_schedule_no,
+            sroItemSerialNo: i.sro_item_serial_no
+          }))
+        };
+
+        // 3️⃣ Post to FBR API
+        const response = await axios.post(PostAPI, fbrPayload, {
+          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }
+        });
+
+        // 4️⃣ Update invoice as posted
+        await db.promise().query(
+          `UPDATE invoices SET status='posted', fbr_irn=?, fbr_response=? WHERE id=?`,
+          [response.data.irn || null, JSON.stringify(response.data), invoice.id]
+        );
+
+        results.push({
+          invoiceId: invoice.id,
+          scenarioId: invoice.scenario_id,
+          status: "posted",
+          irn: response.data.irn || null
+        });
+
+      } catch (err) {
+        console.error(`❌ Error posting invoice ${invoice.id}:`, err.message);
+        results.push({
+          invoiceId: invoice.id,
+          scenarioId: invoice.scenario_id,
+          status: "failed",
+          error: err.message
+        });
+      }
+    }
+
+    // 5️⃣ Return result summary
     res.json({
-      page,
-      limit,
-      totalInvoices: totals[0].totalInvoices,
-      totalRevenue: totals[0].totalRevenue,
-      totalPostedCount: totals[0].totalPostedCount,
-      totalUnpostedCount: totals[0].totalUnpostedCount,
-      totalPostedValue: totals[0].totalPostedValue,
-      totalUnpostedValue: totals[0].totalUnpostedValue,
-      invoices
+      message: "Range posting completed",
+      total: results.length,
+      posted: results.filter(r => r.status === "posted").length,
+      failed: results.filter(r => r.status === "failed").length,
+      details: results
     });
+
   } catch (err) {
-    console.error("❌ List Invoices Error:", err);
-    res.status(500).json({ status: 'error', error: err.message });
+    console.error("❌ Range Post Error:", err);
+    res.status(500).json({ error: err.message });
   }
 };
+
+
+exports.getInvoiceFromFBR = async (req, res) => {
+  const { irn } = req.params; // Invoice Reference Number from FBR
+
+  try {
+    const token = process.env.FBR_ACCESS_TOKEN;
+    const baseURL = process.env.FBR_GET_API;
+
+    if (!token) {
+      return res.status(400).json({ status: "error", message: "FBR_ACCESS_TOKEN is missing" });
+    }
+
+    const url = `${baseURL}/${irn}`;
+    console.log("📡 Requesting FBR GET API:", url);
+
+    const response = await axios.get(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      }
+    });
+
+    return res.status(200).json({
+      status: "success",
+      fbrData: response.data
+    });
+
+  } catch (err) {
+    console.error("❌ FBR GET API Error:", err.response?.data || err.message);
+    res.status(500).json({
+      status: "error",
+      error: err.response?.data || err.message
+    });
+  }
+};
+
+
+
 
 
 
@@ -502,7 +713,7 @@ exports.exportInvoicesCSV = async (req, res) => {
 
         // 🧹 Optional: delete file after 10 seconds
         setTimeout(() => {
-          fs.unlink(filePath, () => {});
+          fs.unlink(filePath, () => { });
         }, 10000);
       });
     });
